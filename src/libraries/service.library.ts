@@ -19,6 +19,12 @@ export class LibraryService {
 	 * @return {Library[]}        List of Library found by provider
 	 */
 	async findByName(params: string): Library[] {
+		console.log(params)
 		return await this.worldcat.getLibraryByName(params)
+	}
+
+	async findByBook(params: string): Library[] {
+		console.log(params)
+		return await this.worldcat.getLibraryByBook(params)
 	}
 }

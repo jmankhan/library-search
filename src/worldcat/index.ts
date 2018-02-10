@@ -1,5 +1,7 @@
 import {BookParam} from './interface.bookparam'
 import {LibParam} from './interface.libparam'
+import {LibrarySearchParam} from './interface.libsearchparam'
+
 import {Book} from '../books/interface.book'
 import {Library} from '../libraries/interface.library'
 
@@ -19,7 +21,7 @@ export class Worldcat {
 	private readonly libraryUrl: string = 'http://www.worldcat.org/wcpa/servlet/org.oclc.lac.ui.ajax.ServiceServlet'
 
 	//default query parameters required for books url. should be merged with a search query parameter under the 'q' key
-	private readonly defaultBookParams: WorldcatParams = {
+	private readonly defaultBookParams = {
 		'fq' : '%20(%28x0%3Abook+x4%3Aprintbook%29)',
 		'se' : '',
 		'sd' : '',
@@ -31,7 +33,7 @@ export class Worldcat {
 	}
 
 	//default query parameters required for library url. should be merged with a search query parameter under the 'search' key		
-	private readonly defaultLibraryParams: WorldcatParams = {
+	private readonly defaultLibraryParams = {
 		'serviceCommand' : 'librarySearch',
 		'search' : '',
 		'start' : '1',
@@ -40,11 +42,17 @@ export class Worldcat {
 		'dofavlib' : false,
 		'sort' : 'none' //defaults to 'sort by relevance'
 	}
-	
+
+	private readonly defaultLibrarySearchParams = {
+		'wcoclcnum': '', 					//book_oclc
+		'loc': '', 							//zip
+		'serviceCommand': 'holdingsdata'
+	}
+
 	/**
-	 * Finds a list of books using the Worldcat Search page
+	 * Retrieves the Worldcat Book Search response xml and parses it
 	 * @param  {BookParam} bookParams The parameters to search against
-	 * @return {Book[]}               Returns a list of Books @see 'src/books/interface.book.ts'
+	 * @return {Book[]}               Returns a list of Book
 	 */
 	public async getBook(bookParams: BookParam): Book[] {
 		//set flag on params
@@ -159,13 +167,32 @@ export class Worldcat {
 				console.log(err)
 			})
 	}
+
+	public async getLibraryByBook(searchParams: LibrarySearchParam): Library[] {
+		//set param flag
+		searchParams.isLibSearch = true
+
+		//init return array
+		const libraries: Library[] = []
+
+		return this.httpCallout(this.libraryUrl, searchParams)
+			.then(response => {
+				console.log(response.data)
+				return libraries
+			})
+			.catch(err => {
+				console.log(err)
+				return libraries
+			})
+	}
+
 	/**
 	 * Performs the http request to retrieve the worldcat response as an xml page
 	 * @param  {string}             url    Worldcat endpoint to perform a GET request against
 	 * @param  {BookParam|LibParam} params Parameters to be appended to the base url as a query string
 	 * @return {Promise}                   Returns an axios response with an expected XML format in response.data
 	 */
-	private httpCallout(url: string, typedParams: BookParam|LibParam): Promise {
+	private httpCallout(url: string, typedParams: BookParam|LibParam|LibrarySearchParam): Promise {
 		//copy params into a sanitized object. set additional parameters based on what type the object is.
 		//Since type checking is not available at runtime, we will use object properties and hope we remember
 		//to set them before calling this...
@@ -180,6 +207,11 @@ export class Worldcat {
 		else if(typedParams.isLib) {
 			Object.assign(params, this.defaultLibraryParams)
 			params['search'] = typedParams.name
+		}
+		else if(typedParams.isLibSearch) {
+			Object.assign(params, this.defaultLibrarySearchParams)
+			params['wcoclcnum'] = typedParams.book_oclc
+			params['loc'] = typedParams.zip
 		}
 
 		return axios.get(url + this.toQueryString(params))
