@@ -1,6 +1,7 @@
 import {BookParam} from './interface.bookparam'
 import {LibParam} from './interface.libparam'
 import {LibrarySearchParam} from './interface.libsearchparam'
+import {WorldcatParser} from './parser.worldcat'
 
 import {Book} from '../books/interface.book'
 import {Library} from '../libraries/interface.library'
@@ -19,6 +20,8 @@ export class Worldcat {
 
 	//base url for searching for libraries
 	private readonly libraryUrl: string = 'http://www.worldcat.org/wcpa/servlet/org.oclc.lac.ui.ajax.ServiceServlet'
+
+	private readonly parser: WorldcatParser = new WorldcatParser()
 
 	//default query parameters required for books url. should be merged with a search query parameter under the 'q' key
 	private readonly defaultBookParams = {
@@ -57,45 +60,9 @@ export class Worldcat {
 	public async getBook(bookParams: BookParam): Book[] {
 		//set flag on params
 		bookParams.isBook = true
-		
-		//Book[] to return
-		const books: Book[] = []
-
-		//save function ref so it easier to access later
-		const selectNodeDetails = this.selectNodeDetails 
-
 		return this.httpCallout(this.booksUrl, bookParams)
 			.then(response => {
-				//load response as a cheerio object
-				const $ = cheerio.load(response.data, {
-						normalizeWhitespace: true, 
-						xmlMode: true, 
-						encoding: 'UTF-8', 
-						xml: true
-				})
-
-				//parse book xml response
-				const content = $('response').find('element').find('content').last()[0].children[0].data
-				const booksMarkup = cheerio.load('<DOCTYPE html> <html><body>' + content  + '</body></html>')
-				booksMarkup('.details').each((index, book) => {
-				
-					//collect data by css selector. the joys of web scraping. 
-					const oclcs = selectNodeDetails($, '.oclc_number', book)
-					const authors = selectNodeDetails($, '.author', book).map( a => {return a.replace('by', '').trim()})
-					const titles = selectNodeDetails($, $('a', book).find('strong'), book)
-					const publishers = selectNodeDetails($, '.itemPublisher', book)
-
-					//add response to return object
-					for(let i=0; i<oclcs.length; i++) {
-						books.push({
-							title: titles[i],
-							oclc: oclcs[i],
-							author: authors[i],
-							publisher: publishers[i]
-						})
-					}
-				})
-				return books
+				return this.parser.parseBookResponse(response.data)
 			})
 			.catch(err => {
 				console.log(err)
@@ -112,56 +79,9 @@ export class Worldcat {
 		//set flag on params
 		libParams.isLib = true
 
-		//return object
-		const libraries : Library[] = []
-
 		return this.httpCallout(this.libraryUrl, libParams)
 			.then(response => {
-				//load response data into a cheerio object
-				const $ = cheerio.load(response.data, {
-						normalizeWhitespace: true, 
-						xmlMode: true, 
-						encoding: 'UTF-8', 
-						xml: true
-				})
-
-				//parse library xml response
-				//Each library should be contained in a table row with an id. 
-				//This table row is expected to have all available information we need.
-				//Many libraries do not have a catalog url, or even a website linked, so they are optional
-				const libs = $('tr[id]')
-
-				//.each(index, element) is part of the Cheerio API
-				libs.each( (i, lib) => {
-					const name:string = lib.attribs['id']
-
-					//contact info is split into many lines with line breaks and weird spacing.
-					const contact:string[] = cheerio.load(lib)('p')[1].children.map( line => {
-						return line.data ? line.data.trim() : ""
-					}).join(" ").split("&nbsp;").join()
-					const phone:string = contact.match(/\(\d{3}\).*\d{3}\-\d{4}/)
-					const address:string = contact.replace(phone, "")
-
-					//check if a url or catalog url exists before adding it to response
-					const urls = cheerio.load(lib)('.lib-website')
-					const catalogUrls = cheerio.load(lib)('.lib-catalog')
-
-					const url:string = urls.length > 0 ? urls[0].attribs['href'] : null
-					const catalogUrl:string = catalogUrls.length > 0 ? catalogUrls[0].attribs['href'] : null
-
-					const response = {
-						name: name,
-						address: address,
-						phone: phone
-					}
-					if(url)
-						response['url'] = url
-					if(catalogUrl)
-						response['catalogUrl'] = catalogUrl
-
-					libraries.push(response)
-				})
-				return libraries
+				return this.parser.parseLibraryResponse(response.data)
 			})
 			.catch(err => {
 				console.log(err)
@@ -177,8 +97,7 @@ export class Worldcat {
 
 		return this.httpCallout(this.libraryUrl, searchParams)
 			.then(response => {
-				console.log(response.data)
-				return libraries
+				return this.parser.parseLibrarySearchResponse(response.data)
 			})
 			.catch(err => {
 				console.log(err)
@@ -230,19 +149,4 @@ export class Worldcat {
 		}).join('&')
 	}
 
-	/**
-	 * Selects a data from within a parent selector of the Worldcat response
-	 * To return the desired data, pass its parent Node
-	 * @param  {Cheerio} $        	The root node
-	 * @param  {string}  selector 	The Cheerio "css-like" selector
-	 * @param  {any}     parent     The context parent node
-	 * @return {string[]|number[]}  Returns a string[] or number[]
-	 */
-	private selectNodeDetails($: Cheerio, selector: string, parent: any): string[]|number[] {
-		const accumulator = []
-		$(selector, parent).each((index, n) => {
-			accumulator.push(n.children[0].data)
-		})
-		return accumulator
-	}
 }
