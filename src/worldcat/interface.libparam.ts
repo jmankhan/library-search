@@ -3,5 +3,5 @@
  */
 export interface LibParam {
 	name: string
-	isBook?: boolean
+	isLib?: boolean
 }

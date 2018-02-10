@@ -179,7 +179,7 @@ export class Worldcat {
 		}
 		else if(typedParams.isLib) {
 			Object.assign(params, this.defaultLibraryParams)
-			params['search'] = typedParams.search
+			params['search'] = typedParams.name
 		}
 
 		return axios.get(url + this.toQueryString(params))

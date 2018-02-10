@@ -20,10 +20,26 @@ This is a hobby project to fill a slightly annoying gap in the book hunt experie
 
 - Clone repository
 - run `npm install` in root directory
-- run `node index`
+- you may also need to run `npm i @nestjs/common @nestjs/core @nestjs/microservices @nestjs/websockets rxjs typescript reflect-metadata ` and `npm i -D @types/node ts-node`
+- run `node index` to start the server
 - server should start on localhost:3000
-- run `node --inspect index` for debug mode
+- run `node --inspect index` to start the server with a debugger
+
+### Additional Notes
+Make sure to use the latest version of Node (v9.0+)
+
+
 
 # Tests
 
 - Tests are currently in progress. Minimal support for Chai and Mocha is currently available
+
+# Usage
+
+The books endpoint can be examined like so:
+
+[http://localhost:3000/books?title=Harry+Potter](http://localhost:3000/books?title=Harry+Potter)
+
+And the libraries endpoint:
+
+[http://localhost:3000/library?name=Allentown](http://localhost:3000/library?name=Allentown)
