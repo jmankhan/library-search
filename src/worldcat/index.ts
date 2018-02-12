@@ -11,8 +11,10 @@ const cheerio = require('cheerio')  //html/xml parser
 
 /**
  * Worldcat provider. Performs requests to the worldcat servers to find books and libraries.
- * Requries heavy parsing of xml responses, html pages, and relies on up to date endpoint information.
+ * Leverages parser to do heavy lifting of processing xml responses, html pages
  * This will break if Worldcat changes anything significant in their url structure!
+ *
+ * This class should handle http exceptions and propgate them up the chain to the controller
  */
 export class Worldcat {
 	//base url for searching for books
@@ -21,6 +23,7 @@ export class Worldcat {
 	//base url for searching for libraries
 	private readonly libraryUrl: string = 'http://www.worldcat.org/wcpa/servlet/org.oclc.lac.ui.ajax.ServiceServlet'
 
+	//parser instance that will handle converting and formatting response data
 	private readonly parser: WorldcatParser = new WorldcatParser()
 
 	//default query parameters required for books url. should be merged with a search query parameter under the 'q' key

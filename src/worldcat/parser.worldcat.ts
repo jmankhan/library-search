@@ -2,6 +2,13 @@ import {Library} from '../libraries/interface.library'
 import {Book} from '../books/interface.book'
 const cheerio: Cheerio = require('cheerio')
 
+/**
+ * Worldcat response parser/processor that will take an xml or html page from Worldcat
+ * and convert into an interface compliant structure to return to the provider
+ *
+ * This class will handle malformed data, formatting, and propogate error logs to dev.
+ * It will fail silently (from user's perspective) and gracefully where possible
+ */
 export class WorldcatParser {
 
 	parseBookResponse(data: string): Book[] {
@@ -41,7 +48,7 @@ export class WorldcatParser {
 
 	parseLibraryResponse(data: string): Library[] {
 		const libraries: Library[] = []
-		
+
 		//load response data into a cheerio object
 		const $ = cheerio.load(data, {
 				normalizeWhitespace: true, 
@@ -90,7 +97,31 @@ export class WorldcatParser {
 	}
 
 	parseLibrarySearchResponse(data: string): Library[] {
-		return null
+		const libraries: Library[] = []
+
+		//load response data into a cheerio object
+		const $ = cheerio.load(data, {
+				normalizeWhitespace: true, 
+				xmlMode: true, 
+				encoding: 'UTF-8', 
+				xml: true
+		})
+
+		const context:Cheerio = $('.name')
+		const names:string[] = this.selectNodeDetails($, 'a', context)
+		const addresses:string[] = this.selectNodeDetails($, '.geoloc', context)
+		if(names.length !== addresses.length) {
+			console.log('library search parsing length mismatch: ')
+			console.log(names)
+			console.log(addresses)
+		}
+		for(var i=0; i<names.length; i++) {
+			libraries.push({
+				name: names[i],
+				address: addresses[i]
+			})
+		}
+		return libraries
 	}
 
 		/**
