@@ -19,8 +19,9 @@ export class BookService {
 	 * @param  {string} params url query string 
 	 * @return {Book[]}        List of Books worldcat found
 	 */
-	async findByTitle(params: string): Book[] {
-		return await this.worldcat.getBook(params)
+	async findByTitle(params: string): string {
+		const data = await this.worldcat.getBook(params)
+		return {status: 200, books: data}
 
 	}
 }

@@ -13,7 +13,7 @@ export class WorldcatParser {
 
 	parseBookResponse(data: string): Book[] {
 		const books: Book[] = []
-
+		const selectNodeDetails = this.selectNodeDetails
 		//load response as a cheerio object
 		const $ = cheerio.load(data, {
 				normalizeWhitespace: true, 
