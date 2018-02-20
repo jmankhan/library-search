@@ -1,4 +1,5 @@
-import {Library} from '../libraries/interface.library'
+import {BookResponse} from '../books/interface.bookresponse'
+import {LibraryResponse} from '../libraries/interface.libresponse'
 import {Book} from '../books/interface.book'
 const cheerio: Cheerio = require('cheerio')
 
@@ -11,7 +12,7 @@ const cheerio: Cheerio = require('cheerio')
  */
 export class WorldcatParser {
 
-	parseBookResponse(data: string): Book[] {
+	parseBookResponse(data: string): BookResponse {
 		const books: Book[] = []
 		const selectNodeDetails = this.selectNodeDetails
 		//load response as a cheerio object
@@ -25,6 +26,8 @@ export class WorldcatParser {
 		//parse book xml response
 		const content = $('response').find('element').find('content').last()[0].children[0].data
 		const booksMarkup = cheerio.load('<DOCTYPE html> <html><body>' + content  + '</body></html>')
+		const total = booksMarkup('.resultsinfo').first().find('td').find('strong')[1].children[0].data
+
 		booksMarkup('.details').each((index, book) => {
 		
 			//collect data by css selector. the joys of web scraping. 
@@ -43,10 +46,13 @@ export class WorldcatParser {
 				})
 			}
 		})
-		return books
+		return {
+			total: total,
+			data: books
+		}
 	}
 
-	parseLibraryResponse(data: string): Library[] {
+	parseLibraryResponse(data: string): LibraryResponse {
 		const libraries: Library[] = []
 
 		//load response data into a cheerio object
@@ -62,10 +68,24 @@ export class WorldcatParser {
 		//This table row is expected to have all available information we need.
 		//Many libraries do not have a catalog url, or even a website linked, so they are optional
 		const libs = $('tr[id]')
+		const total:number = $('.libsdisplay').find('b').last().text()
 
 		//.each(index, element) is part of the Cheerio API
 		libs.each( (i, lib) => {
 			const name:string = lib.attribs['id']
+			
+			//google maps location url. we can parse the lat/lng from it
+			const locationUrl:string = cheerio.load(lib)('.lib-map-sm')[0].attribs['href']
+			let lat = null
+			let lng = null
+			try {
+				const latlng = locationUrl.split('@')[1].split('&')[0].split(',')
+				lat = latlng[0]
+				lng = latlng[1]
+			}
+			catch(err) {
+				console.log('no latlng in url')
+			}
 
 			//contact info is split into many lines with line breaks and weird spacing.
 			const contact:string[] = cheerio.load(lib)('p')[1].children.map( line => {
@@ -84,7 +104,9 @@ export class WorldcatParser {
 			const response = {
 				name: name,
 				address: address,
-				phone: phone
+				phone: phone,
+				lat: lat,
+				lng: lng
 			}
 			if(url)
 				response['url'] = url
@@ -93,27 +115,31 @@ export class WorldcatParser {
 
 			libraries.push(response)
 		})
-		return libraries
+		return {
+			total: total,
+			data: libraries
+		}
 	}
 
-	parseLibrarySearchResponse(data: string): Library[] {
-		const libraries: Library[] = []
+	parseLibrarySearchResponse(data: string): LibrarySearchResponse {
+		const libraries :Library[] = []
+		const options :CheerioOptionsInterface = {
+			normalizeWhitespace: true, 
+			xmlMode: true
+		}
 
 		//load response data into a cheerio object
-		const $ = cheerio.load(data, {
-				normalizeWhitespace: true, 
-				xmlMode: true, 
-				encoding: 'UTF-8', 
-				xml: true
-		})
+		const $ :CheerioAPI = cheerio.load(data, options)
 
-		const context:Cheerio = $('.name')
-		const names:string[] = this.selectNodeDetails($, 'a', context)
-		const addresses:string[] = this.selectNodeDetails($, '.geoloc', context)
+		const names 	:string[] 	= this.selectNodeDetails($, 'a', '.name')
+		const addresses :string[] 	= this.selectNodeDetails($, '.geoloc', '.name')
+		const total 	:string 	= this.selectNodeDetails($, 'strong', $('.libsdisplay'))[1]
+
+		//check for any weird errors
 		if(names.length !== addresses.length) {
 			console.log('library search parsing length mismatch: ')
-			console.log(names)
-			console.log(addresses)
+			console.log(JSON.stringify(names))
+			console.log(JSON.stringify(addresses))
 		}
 		for(var i=0; i<names.length; i++) {
 			libraries.push({
@@ -121,20 +147,23 @@ export class WorldcatParser {
 				address: addresses[i]
 			})
 		}
-		return libraries
+		return {
+			total: total,
+			data: libraries
+		}
 	}
 
 		/**
 	 * Selects a data from within a parent selector of the Worldcat response
 	 * To return the desired data, pass its parent Node
-	 * @param  {Cheerio} $        	The root node
+	 * @param  {Cheerio} $  		The root node
 	 * @param  {string}  selector 	The Cheerio "css-like" selector
-	 * @param  {any}     parent     The context parent node
+	 * @param  {CheerioElement}     parent     The context parent node
 	 * @return {string[]|number[]}  Returns a string[] or number[]
 	 */
-	private selectNodeDetails($: Cheerio, selector: string, parent: any): string[]|number[] {
-		const accumulator = []
-		$(selector, parent).each((index, n) => {
+	private selectNodeDetails($ :CheerioSelector, selector :string, parent :string): string[] {
+		const accumulator :string[] = []
+		$(selector, parent).each((index:number, n:CheerioElement) => {
 			accumulator.push(n.children[0].data)
 		})
 		return accumulator

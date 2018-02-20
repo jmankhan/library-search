@@ -3,6 +3,7 @@ import {LibraryService} from './service.library'
 import {Library} from './interface.library'
 import {LibParam} from '../worldcat/interface.libparam'
 import {LibrarySearchParam} from '../worldcat/interface.libsearchparam'
+import {LibrarySearchResponse} from './interface.libresponse'
 
 /**
  * Library controller that handles the endpoint
@@ -18,7 +19,7 @@ export class LibraryController {
 	 * @return {Promise<Library[]>}        Returns a Promise from the service that may be rejected
 	 */
 	@Get()
-	async find(@Query() params: LibParam|LibrarySearchParam): Promise<Library[]> {
+	async find(@Query() params: LibParam|LibrarySearchParam): Promise<LibraryResponse> {
 		if(params.name)
 			return await this.service.findByName(params)
 		else if(params.book_oclc)
@@ -26,5 +27,4 @@ export class LibraryController {
 		else
 			return []
 	}
-
 }

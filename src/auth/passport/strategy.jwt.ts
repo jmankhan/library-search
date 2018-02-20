@@ -9,7 +9,7 @@ export class JwtStrategy extends Strategy {
 		super({
 			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 			passReqToCallback: true,
-			secretOrKey: process.env.JWT_SECRET
+			secretOrKey: 'q+m7kcMENkbhxQin9JCdvDOILQI4a7uOr0XcGpBfSnQ='
 		}, 
 		async (req, payload, next) => {
 			await this.verify(req, payload, next)
@@ -21,7 +21,7 @@ export class JwtStrategy extends Strategy {
 	public async verify(req, payload, done) {
 		const isValid = await this.authService.validate(payload)
 		if(!isValid)
-			return done(`Unauthorized: ${payload}`, false)
+			return done(new HttpException('Forbidden', 401), false)
 		else	
 			done(null, payload)
 	}

@@ -1,5 +1,5 @@
 import {Controller, Get, Post, Body, Query} from '@nestjs/common'
-import {Book} from './interface.book'
+import {BookResponse} from './interface.bookresponse'
 import {BookService} from './service.book'
 
 /**
@@ -16,7 +16,7 @@ export class BookController {
 	 * @return {Promise<Book[]>}        Returns a Promise resolved by the service
 	 */
 	@Get()
-	async findByTitle(@Query() params: string): Promise<Book[]> {
+	async findByTitle(@Query() params: BookParam): Promise<BookResponse> {
 		return await this.service.findByTitle(params)
 	}
 }

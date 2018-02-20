@@ -4,8 +4,8 @@ import {MongooseModule} from '@nestjs/mongoose'
 import {AuthService} from './service.auth'
 import {JwtStrategy} from './passport/strategy.jwt'
 import {AuthController} from './controller.auth'
-import {UserSchema} from './schema.user'
-import { LoggerMiddleware } from '../middleware.logger'
+import {UserSchema} from './user/schema.user'
+import {LoggerMiddleware} from '../middleware.logger'
 
 @Module({
 	imports: [MongooseModule.forFeature([{name: 'User', schema: UserSchema}])],

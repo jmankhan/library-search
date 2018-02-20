@@ -1,5 +1,5 @@
 import {Component} from '@nestjs/common'
-import {Book} from './interface.book'
+import {BookResponse} from './interface.bookresponse'
 import {Worldcat} from '../worldcat'
 
 /**
@@ -19,9 +19,7 @@ export class BookService {
 	 * @param  {string} params url query string 
 	 * @return {Book[]}        List of Books worldcat found
 	 */
-	async findByTitle(params: string): string {
-		const data = await this.worldcat.getBook(params)
-		return {status: 200, books: data}
-
+	async findByTitle(params: string): BookResponse {
+		return await this.worldcat.getBook(params)
 	}
 }

@@ -12,10 +12,12 @@
   "devDependencies": {
     "@types/chai": "^4.1.2",
     "@types/chai-http": "^3.0.3",
+    "@types/chalk": "^2.2.0",
     "@types/cheerio": "^0.22.7",
     "@types/cors": "^2.8.3",
     "@types/jsonwebtoken": "^7.2.5",
     "@types/mocha": "^2.2.48",
+    "@types/mongoose": "^5.0.2",
     "@types/node": "^9.4.4",
     "chai": "^4.1.2",
     "chai-http": "^3.0.0",
@@ -31,6 +33,7 @@
     "@nestjs/websockets": "^4.5.8",
     "axios": "^0.17.1",
     "body-parser": "^1.18.2",
+    "chalk": "^2.3.1",
     "cheerio": "^1.0.0-rc.2",
     "class-validator": "^0.8.1",
     "cors": "^2.8.4",
@@ -41,6 +44,7 @@
     "passport-jwt": "^3.0.1",
     "redis": "^2.8.0",
     "reflect-metadata": "^0.1.12",
-    "rxjs": "^5.5.6"
+    "rxjs": "^5.5.6",
+    "typescript": "^2.7.2"
   }
 }

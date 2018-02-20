@@ -1,13 +1,12 @@
-import {BookParam} from './interface.bookparam'
-import {LibParam} from './interface.libparam'
-import {LibrarySearchParam} from './interface.libsearchparam'
+import {BookParam} from '../books/interface.bookparam'
+import {LibParam} from '../libraries/interface.libparam'
+import {LibrarySearchParam} from '../libraries/interface.libsearchparam'
 import {WorldcatParser} from './parser.worldcat'
 
-import {Book} from '../books/interface.book'
-import {Library} from '../libraries/interface.library'
+import {BookResponse} from '../books/interface.bookresponse'
+import {LibraryResponse} from '../libraries/interface.libresponse'
 
 const axios = require('axios')      //http client
-const cheerio = require('cheerio')  //html/xml parser
 
 /**
  * Worldcat provider. Performs requests to the worldcat servers to find books and libraries.
@@ -28,13 +27,14 @@ export class Worldcat {
 
 	//default query parameters required for books url. should be merged with a search query parameter under the 'q' key
 	private readonly defaultBookParams = {
-		'fq' : '%20(%28x0%3Abook+x4%3Aprintbook%29)',
+		'fq' : '%20(%28x0%3Abook+x4%3Aprintbook%29)', 	//print books only
 		'se' : '',
 		'sd' : '',
 		'dblist': 638,
 		'qt' : 'facet_fm_checkbox',
-		'refinesearch' : true,
+		'refinesearch' : false, 						//matches default worldcat search
 		'refreshFormat' : 'undefined',
+		'start': 1, 									//start paging
 		'q' : 'kw%3A'
 	}
 
@@ -43,7 +43,7 @@ export class Worldcat {
 		'serviceCommand' : 'librarySearch',
 		'search' : '',
 		'start' : '1',
-		'count' : 'none',
+		'count' : '100', //default to 100 results to minimize paging calls
 		'libType' : 3, //public library
 		'dofavlib' : false,
 		'sort' : 'none' //defaults to 'sort by relevance'
@@ -52,6 +52,7 @@ export class Worldcat {
 	private readonly defaultLibrarySearchParams = {
 		'wcoclcnum': '', 					//book_oclc
 		'loc': '', 							//zip
+		'start_holding': 1, 				//start paging bound
 		'serviceCommand': 'holdingsdata'
 	}
 
@@ -60,7 +61,7 @@ export class Worldcat {
 	 * @param  {BookParam} bookParams The parameters to search against
 	 * @return {Book[]}               Returns a list of Book
 	 */
-	public async getBook(bookParams: BookParam): Book[] {
+	public async getBook(bookParams: BookParam): BookResponse {
 		//set flag on params
 		bookParams.isBook = true
 		return this.httpCallout(this.booksUrl, bookParams)
@@ -78,7 +79,7 @@ export class Worldcat {
 	 * @param  {LibParam}  libParams params to search against
 	 * @return {Library[]}           List of libraries found
 	 */
-	public async getLibraryByName(libParams: LibParam): Library[] {
+	public async getLibraryByName(libParams: LibParam): LibraryResponse {
 		//set flag on params
 		libParams.isLib = true
 
@@ -91,7 +92,7 @@ export class Worldcat {
 			})
 	}
 
-	public async getLibraryByBook(searchParams: LibrarySearchParam): Library[] {
+	public async getLibraryByBook(searchParams: LibrarySearchParam): LibraryResponse {
 		//set param flag
 		searchParams.isLibSearch = true
 
@@ -122,18 +123,19 @@ export class Worldcat {
 		let params = {}
 		if(typedParams.isBook) {
 			Object.assign(params, this.defaultBookParams)
-			params['q'] += Object.keys(typedParams).map(key => {
-				return typedParams[key] ? typedParams[key] : ''
-			})
+			params['q'] += typedParams.keyword
+			params['start'] = typedParams.page ? typedParams.page : this.defaultBookParams['start']
 		}
 		else if(typedParams.isLib) {
 			Object.assign(params, this.defaultLibraryParams)
 			params['search'] = typedParams.name
+			params['start'] = typedParams.page ? typedParams.page : this.defaultLibraryParams['start']
 		}
 		else if(typedParams.isLibSearch) {
 			Object.assign(params, this.defaultLibrarySearchParams)
-			params['wcoclcnum'] = typedParams.book_oclc
-			params['loc'] = typedParams.zip
+			params['wcoclcnum'] = typedParams.book_oclc ? typedParams.book_oclc : this.defaultLibrarySearchParams['book_oclc']
+			params['loc'] = typedParams.zip ? typedParams.zip : this.defaultLibrarySearchParams['loc']
+			params['start_holding'] = typedParams.page ? typedParams.page : this.defaultLibrarySearchParams['start_holding']
 		}
 
 		return axios.get(url + this.toQueryString(params))

@@ -5,6 +5,8 @@
 export interface Library {
 	readonly name: string
 	readonly address?: string
+	readonly lat?: number
+	readonly lng?: number
 	readonly phone?: string
 	readonly catalog_url?: string
 	readonly url?: string

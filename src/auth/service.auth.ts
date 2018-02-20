@@ -2,8 +2,8 @@ import * as jwt from 'jsonwebtoken'
 import {Component, Inject} from '@nestjs/common'
 import {Model} from 'mongoose'
 import {InjectModel} from '@nestjs/mongoose'
-import {UserSchema} from './schema.user' 
-import {IUser} from './interface.user'
+import {UserSchema} from './user/schema.user' 
+import {IUser} from './user/interface.user'
 
 @Component()
 export class AuthService {
@@ -12,7 +12,7 @@ export class AuthService {
 
 	async createToken(user: IUser) {
 		const expiresIn = 3600
-		const secret = process.env.JWT_SECRET
+		const secret = 'q+m7kcMENkbhxQin9JCdvDOILQI4a7uOr0XcGpBfSnQ='
 		const token = jwt.sign(user, secret, { expiresIn })
 		return {
 			expiresIn,
@@ -21,7 +21,6 @@ export class AuthService {
 	}
 
 	async register(user: IUser) {
-		console.log(`received user ${user.username}`)
 		const record = new this.userModel(user)
 		return await record.save(err => {
 			if(err) {
@@ -34,7 +33,9 @@ export class AuthService {
 		})
 	}
 
-	async validate(signedUser): Promise<boolean> {
-		return true
+	async login(user: IUser): Promise<boolean> {
+		return this.userModel.findOne({username: user.username, password: user.password}, 'id name email', (err, found) => {
+			return err ? err : found
+		})
 	}
 }
