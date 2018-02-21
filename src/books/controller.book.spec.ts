@@ -1,21 +1,32 @@
-import * as mocha from 'mocha'
-import * as chai from 'chai'
-import chaiHttp = require('chai-http')
+import {Test} from '@nestjs/testing'
+import {BookController} from './controller.book'
+import {BookService} from './service.book'
+import {BookParam} from './interfaces'
 
-import app from '../app.module'
+describe('BookController', () => {
+	let controller :BookController
+	let service :BookService
 
-chai.use(chaiHttp)
-const expect = chai.expect
+	beforeEach(async () => {
+		const module = await Test.createTestingModule({
+			controllers: [BookController],
+			components: [BookService]
+		}).compile()
 
-describe('GET /books', () => {
+		controller = module.get<BookController>(BookController)		
+		service = module.get<BookService>(BookService)
+	})
 
-	it('should return a Book array', () => {
-		return chai.request(app).get('/books')
-			.then(res => {
-				expect(res.status).to.equal(200)
-				expect(res).to.be.json
-				expect(res.body).to.be.an('array')
-				expect(res.body).to.have.length(10)
-			})
+	describe('findByKeyword', () => {
+		it('should return an array of books', async () => {
+			const result = ['test']
+			const params :BookParam = {
+				keyword: 'test'
+			}
+
+			jest.spyOn(service, 'findByKeyword').mockImplementation(params => result)
+
+			expect(await controller.findByKeyword(params)).toBe(result)
+		})
 	})
 })

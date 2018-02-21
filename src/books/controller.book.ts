@@ -14,7 +14,7 @@ export class BookController {
 	 *  @param {BookParam} params enforced query string parameters 
 	 */
 	@Get()
-	async findByTitle(@Query() params: BookParam): Promise<BookResponse> {
-		return await this.service.findByTitle(params)
+	async findByKeyword(@Query() params: BookParam): Promise<BookResponse> {
+		return await this.service.findByKeyword(params)
 	}
 }

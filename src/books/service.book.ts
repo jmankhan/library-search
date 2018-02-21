@@ -1,4 +1,4 @@
-import {Component} from '@nestjs/common'
+import {BadRequestException, Component} from '@nestjs/common'
 import {BookParam, BookResponse} from './interfaces'
 import {WorldcatAPI} from '../worldcat'
 
@@ -18,7 +18,10 @@ export class BookService {
 	 * @param  {string} params url query string 
 	 * @return {Book[]}        List of Books worldcat found
 	 */
-	async findByTitle(params: BookParam): Promise<BookResponse> {
+	async findByKeyword(params: BookParam): Promise<BookResponse> {
+		if(params.keyword == null) {
+			throw new BadRequestException('Invalid query parameters')
+		}
 		return await this.worldcat.getBook(params)
 	}
 }
