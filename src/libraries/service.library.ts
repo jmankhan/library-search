@@ -1,18 +1,16 @@
 import {Component} from '@nestjs/common'
-import {LibraryParam} from './interface.libparam'
-import {LibrarySearchParam} from './interface.libsearchparam'
-import {LibraryResponse} from './interface.libresponse'
-import {Worldcat} from '../worldcat'
+import {LibraryParam, LibrarySearchParam, LibraryResponse} from './interfaces'
+import {WorldcatAPI} from '../worldcat'
 
 /**
  * Service that maps a controller request to a provider response
  */
 @Component()
 export class LibraryService {
-	private worldcat :Worldcat
+	private worldcat: WorldcatAPI
 
 	constructor() {
-		this.worldcat = new Worldcat()
+		this.worldcat = new WorldcatAPI()
 	}
 
 	/**

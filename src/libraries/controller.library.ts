@@ -1,9 +1,11 @@
-import {Controller, Get, Body, Query, HttpException, HttpStatus} from '@nestjs/common'
+import {Controller, Get, Body, Query, BadRequestException} from '@nestjs/common'
 import {LibraryService} from './service.library'
-import {Library} from './interface.library'
-import {LibraryParam, instanceOfLibraryParam} from './interface.libparam'
-import {LibrarySearchParam, instanceOfLibrarySearchParam} from './interface.libsearchparam'
-import {LibraryResponse} from './interface.libresponse'
+import {Library, 
+		LibraryParam, 
+		instanceOfLibraryParam, 
+		LibrarySearchParam, 
+		instanceOfLibrarySearchParam,
+		LibraryResponse} from './interfaces'
 
 /**
  * Library controller that handles the endpoint
@@ -25,6 +27,6 @@ export class LibraryController {
 		else if(instanceOfLibrarySearchParam(params))
 			return await this.service.findByBook(params)
 		else
-			throw new HttpException('Incorrect library query parameters', HttpStatus.AMBIGUOUS)
+			throw new BadRequestException('Malformed query parameters')
 	}
 }

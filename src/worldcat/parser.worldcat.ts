@@ -1,7 +1,5 @@
-import {BookResponse} from '../books/interface.bookresponse'
-import {LibraryResponse} from '../libraries/interface.libresponse'
-import {Book} from '../books/interface.book'
-import {Library} from '../libraries/interface.library'
+import {Book, BookResponse} from '../books/interfaces'
+import {Library, LibraryResponse} from '../libraries/interfaces'
 
 const cheerio: CheerioAPI = require('cheerio')
 
@@ -90,8 +88,9 @@ export class WorldcatParser {
 				return line.data ? line.data.trim() : ""
 			}).join(" ").split("&nbsp;").join()
 
-			const phone :string 	= contact.match(/\(\d{3}\).*\d{3}\-\d{4}/)[0]
-			const address :string 	= contact.replace(phone, "")
+			const regex :RegExp 		= /\(\d{3}\).*\d{3}\-\d{4}/
+			const phone :void|string 	= contact.match(regex) ? contact.match(regex)[0] : null
+			const address :string 		= contact.replace(phone, "")
 
 			//check if a url or catalog url exists before adding it to response
 			const urls :Cheerio 		= cheerio.load(lib)('.lib-website')

@@ -1,11 +1,9 @@
 import {Controller, Get, Post, Body, Query} from '@nestjs/common'
-import {BookResponse} from './interface.bookresponse'
+import {BookResponse, BookParam} from './interfaces'
 import {BookService} from './service.book'
-import {BookParam} from './interface.bookparam'
 
 /**
  * Book Controller that handles an endpoint
- * @param {[type]} 'books' endpoint name
  */
 @Controller('books')
 export class BookController {
@@ -13,8 +11,7 @@ export class BookController {
 
 	/**
 	 * Uses a service to retrieve a List of Book, filtered by a search string
-	 * @param  {params}          params Query string parameters
-	 * @return {Promise<Book[]>}        Returns a Promise resolved by the service
+	 *  @param {BookParam} params enforced query string parameters 
 	 */
 	@Get()
 	async findByTitle(@Query() params: BookParam): Promise<BookResponse> {

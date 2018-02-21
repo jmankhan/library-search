@@ -1,18 +1,16 @@
 import {Component} from '@nestjs/common'
-import {BookResponse} from './interface.bookresponse'
-import {BookParam} from './interface.bookparam'
-import {Worldcat} from '../worldcat'
+import {BookParam, BookResponse} from './interfaces'
+import {WorldcatAPI} from '../worldcat'
 
 /**
  * Service that maps a controller request to a provider response.
- * Currently uses the Worldcat provider
  */
 @Component()
 export class BookService {
-	private worldcat: Worldcat
+	private worldcat: WorldcatAPI
 
 	constructor() {
-		this.worldcat = new Worldcat()
+		this.worldcat = new WorldcatAPI()
 	}
 
 	/**

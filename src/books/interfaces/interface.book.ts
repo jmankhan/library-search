@@ -9,5 +9,4 @@ export interface Book {
 	readonly publisher?: string
 	readonly publishDate?: Date
 	readonly publishCity?: string
-	readonly isBook?: boolean
 }

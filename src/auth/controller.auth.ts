@@ -17,8 +17,6 @@ export class AuthController {
 		@Post('login')
 		public async login(@Response() resp, @ExistingUser() existing: IUser) {
 			const user = await this.authService.login(existing)
-			if(!user)
-				throw new HttpException('User not found', 401)
 			resp.send(user)
 		}
 
