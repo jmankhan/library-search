@@ -34,7 +34,6 @@ export class WorldcatParser {
 		const titles :string[] 		= selectNodeDetails($, 'a > strong', content)
 		const publishers :string[] 	= selectNodeDetails($, '.itemPublisher', content)
 		booksMarkup('.details').each((index :number, book :CheerioElement) => {
-		
 
 			//add response to return object
 			for(let i=0; i<oclcs.length; i++) {
@@ -150,7 +149,7 @@ export class WorldcatParser {
 		}
 	}
 
-		/**
+	/**
 	 * Selects a data from within a parent selector of the Worldcat response
 	 * To return the desired data, pass its parent Node
 	 * @param  {Cheerio} $  		The root node

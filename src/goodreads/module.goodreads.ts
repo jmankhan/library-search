@@ -10,7 +10,7 @@ import {GoodreadsService} from './service.goodreads'
 
 export class GoodreadsModule {
 	configure(consumer: MiddlewaresConsumer) {
-		consumer.apply(passport.authenticate('jwt', {session: false}))
-			.forRoutes({path: '/goodreads', method: RequestMethod.ALL})
+		// consumer.apply(passport.authenticate('jwt', {session: false}))
+		// 	.forRoutes({path: '/goodreads', method: RequestMethod.ALL})
 	}
 }

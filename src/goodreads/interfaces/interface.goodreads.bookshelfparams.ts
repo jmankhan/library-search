@@ -10,4 +10,9 @@ export interface GoodreadsBookShelfParams {
 	order? :string 		//a for ascending, d for descending
 	page? :number 		//start paging bound
 	per_page? :number 	//count per page
+	isBookShelf? :boolean 
+}
+
+export function instanceOfGoodreadsBookShelf(object :any) :object is GoodreadsBookShelfParams {
+	return 'isBookShelf' in object
 }

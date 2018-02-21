@@ -3,10 +3,12 @@
  * These keys match the Goodreads API
  */
 export class GoodreadsShelfParams {
-	id: string 			//user id
-	key: string 		//developer key
-	sort?: string 		//sort by column
-	shelf?: string 		//shelf name. returns all if null
+	user_id: string 	//user id
+	key?: string 		//developer key
 	page?: number 		//start paging bound
-	per_page?: number 	//results per page. MAX OF 200
+	isShelf?: boolean
+}
+
+export function instanceOfGoodreadsShelf(object :any) :object is GoodreadsShelfParams {
+	return 'isShelf' in object
 }

@@ -5,9 +5,7 @@ import {LibraryParam,
 		LibraryResponse,
 		LibrarySearchParam, 
 		instanceOfLibrarySearchParam} from '../libraries/interfaces'
-
-//http client
-const axios = require('axios')
+import {httpGet} from '../http'
 
 /**
  * Worldcat API. Performs requests to the worldcat servers to find books and libraries.
@@ -138,20 +136,7 @@ export class WorldcatAPI {
 			params['start_holding'] = typedParams.page ? typedParams.page : this.defaultLibrarySearchParams['start_holding']
 		}
 
-		return axios.get(url + this.toQueryString(params))
-	}
-
-	/**
-	 * Utility method to convert an object map to query paramters. Each paramter should already be encoded if needed
-	 * Replaces null or undefined values with a blank string
-	 * 
-	 * @param  {Object} obj Object map to convert
-	 * @return {string}     an encoded query parameter string starting with '?' and delimited by '&'
-	 */
-	private toQueryString(obj: Object): string {
-		return '?' + Object.keys(obj).map(key => {
-			return key + '=' + (obj[key] ? obj[key] : '')
-		}).join('&')
+		return httpGet(url, params)
 	}
 
 	//empty constructor for init purposes
