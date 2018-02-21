@@ -1,5 +1,5 @@
 import * as jwt from 'jsonwebtoken'
-import {Component, Inject} from '@nestjs/common'
+import {Component, Inject, HttpException, HttpStatus} from '@nestjs/common'
 import {Model} from 'mongoose'
 import {InjectModel} from '@nestjs/mongoose'
 import {UserSchema} from './user/schema.user' 
@@ -33,9 +33,17 @@ export class AuthService {
 		})
 	}
 
-	async login(user: IUser): Promise<boolean> {
-		return this.userModel.findOne({username: user.username, password: user.password}, 'id name email', (err, found) => {
-			return err ? err : found
-		})
+	async login(user: IUser) :Promise<IUser> {
+		return this.userModel.findOne({
+				username: user.username,
+				password: user.password
+			}, 
+			'id name email', 
+			(err, doc) => {
+				if(err)
+					throw new HttpException('User information not found', HttpStatus.NOT_FOUND)
+				return doc
+			}
+		)
 	}
 }

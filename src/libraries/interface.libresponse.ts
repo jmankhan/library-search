@@ -1,6 +1,6 @@
 import {Library} from './interface.library'
 
-export const LibraryResponse = {
-	total: number,
+export interface LibraryResponse {
+	total: string,
 	data: Library[]
 }

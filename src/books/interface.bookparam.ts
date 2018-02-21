@@ -3,3 +3,7 @@ export interface BookParam {
 	readonly page: number, 		//start of paging bounds 
 	isBook?: boolean
 }
+
+export function instanceOfBookParam(object :any) :object is BookParam {
+	return 'isBook' in object
+}

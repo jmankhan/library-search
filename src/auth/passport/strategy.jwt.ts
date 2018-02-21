@@ -1,6 +1,6 @@
 import * as passport from 'passport'
 import {ExtractJwt, Strategy} from 'passport-jwt'
-import {Component, Inject} from  '@nestjs/common'
+import {Component, Inject, HttpException} from  '@nestjs/common'
 import {AuthService} from '../service.auth'
 
 @Component()
@@ -19,7 +19,7 @@ export class JwtStrategy extends Strategy {
 	}
 
 	public async verify(req, payload, done) {
-		const isValid = await this.authService.validate(payload)
+		const isValid = await this.authService.login(payload)
 		if(!isValid)
 			return done(new HttpException('Forbidden', 401), false)
 		else	

@@ -1,6 +1,7 @@
 import {Controller, Get, Post, Body, Query} from '@nestjs/common'
 import {BookResponse} from './interface.bookresponse'
 import {BookService} from './service.book'
+import {BookParam} from './interface.bookparam'
 
 /**
  * Book Controller that handles an endpoint

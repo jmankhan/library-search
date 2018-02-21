@@ -1,5 +1,5 @@
 import * as passport from 'passport'
-import {Module, RequestMethod} from '@nestjs/common'
+import {Module, MiddlewaresConsumer, RequestMethod} from '@nestjs/common'
 import {GoodreadsController} from './controller.goodreads'
 
 @Module({
@@ -7,7 +7,7 @@ import {GoodreadsController} from './controller.goodreads'
 })
 
 export class GoodreadsModule {
-	configure(consumer: MiddlewareConsumer) {
+	configure(consumer: MiddlewaresConsumer) {
 		consumer.apply(passport.authenticate('jwt', {session: false}))
 			.forRoutes({path: '/goodreads', method: RequestMethod.ALL})
 	}

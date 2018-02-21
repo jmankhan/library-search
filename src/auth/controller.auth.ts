@@ -3,7 +3,6 @@ import {AuthService} from './service.auth'
 import {NewUser} from './user/decorator.new.user'
 import {ExistingUser} from './user/decorator.existing.user'
 import {IUser} from './user/interface.user'
-import {UserResponse} from './user/response.user'
 
 @Controller('auth')
 export class AuthController {

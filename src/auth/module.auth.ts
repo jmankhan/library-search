@@ -1,11 +1,11 @@
 import * as passport from 'passport'
-import {Module, NestModule, MiddlwaresConsumer, RequestMethod} from '@nestjs/common'
+import {Module, NestModule, MiddlewaresConsumer, RequestMethod} from '@nestjs/common'
 import {MongooseModule} from '@nestjs/mongoose'
 import {AuthService} from './service.auth'
 import {JwtStrategy} from './passport/strategy.jwt'
 import {AuthController} from './controller.auth'
 import {UserSchema} from './user/schema.user'
-import {LoggerMiddleware} from '../middleware.logger'
+import {LoggerMiddleware} from '../middleware/middleware.logger'
 
 @Module({
 	imports: [MongooseModule.forFeature([{name: 'User', schema: UserSchema}])],
@@ -14,8 +14,7 @@ import {LoggerMiddleware} from '../middleware.logger'
 })
 
 export class AuthModule implements NestModule {
-	//protect all routes except for new token endpoint
-	configure(consumer: MiddlwaresConsumer): void {
+	configure(consumer: MiddlewaresConsumer) {
 		consumer.apply(passport.authenticate('jwt', {session: false}))
 			.forRoutes({path: '/auth/token', method: RequestMethod.ALL})
 	}

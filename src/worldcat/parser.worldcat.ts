@@ -1,40 +1,42 @@
 import {BookResponse} from '../books/interface.bookresponse'
 import {LibraryResponse} from '../libraries/interface.libresponse'
 import {Book} from '../books/interface.book'
-const cheerio: Cheerio = require('cheerio')
+import {Library} from '../libraries/interface.library'
+
+const cheerio: CheerioAPI = require('cheerio')
 
 /**
  * Worldcat response parser/processor that will take an xml or html page from Worldcat
  * and convert into an interface compliant structure to return to the provider
  *
- * This class will handle malformed data, formatting, and propogate error logs to dev.
+ * This class will handle malformed data, formatting, and propogate error logs.
  * It will fail silently (from user's perspective) and gracefully where possible
  */
 export class WorldcatParser {
 
-	parseBookResponse(data: string): BookResponse {
+	private options :CheerioOptionsInterface = {
+			normalizeWhitespace: true, 
+			xmlMode: true
+		}
+
+	parseBookResponse(data: string) :BookResponse {
 		const books: Book[] = []
 		const selectNodeDetails = this.selectNodeDetails
 		//load response as a cheerio object
-		const $ = cheerio.load(data, {
-				normalizeWhitespace: true, 
-				xmlMode: true, 
-				encoding: 'UTF-8', 
-				xml: true
-		})
+		const $ :CheerioStatic = cheerio.load(data, this.options)
 
 		//parse book xml response
-		const content = $('response').find('element').find('content').last()[0].children[0].data
-		const booksMarkup = cheerio.load('<DOCTYPE html> <html><body>' + content  + '</body></html>')
-		const total = booksMarkup('.resultsinfo').first().find('td').find('strong')[1].children[0].data
+		const content :string				= $('response').find('element').find('content').last()[0].children[0].data
+		const booksMarkup :CheerioStatic	= cheerio.load(content)
+		const total :string 				= booksMarkup('.resultsinfo').first().find('td').find('strong')[1].children[0].data
 
-		booksMarkup('.details').each((index, book) => {
+		//collect data by css selector. the joys of web scraping. 
+		const oclcs :string[]		= selectNodeDetails($, '.oclc_number', content)
+		const authors :string[]		= selectNodeDetails($, '.author', content).map( a => {return a.replace('by', '').trim()})
+		const titles :string[] 		= selectNodeDetails($, 'a > strong', content)
+		const publishers :string[] 	= selectNodeDetails($, '.itemPublisher', content)
+		booksMarkup('.details').each((index :number, book :CheerioElement) => {
 		
-			//collect data by css selector. the joys of web scraping. 
-			const oclcs = selectNodeDetails($, '.oclc_number', book)
-			const authors = selectNodeDetails($, '.author', book).map( a => {return a.replace('by', '').trim()})
-			const titles = selectNodeDetails($, $('a', book).find('strong'), book)
-			const publishers = selectNodeDetails($, '.itemPublisher', book)
 
 			//add response to return object
 			for(let i=0; i<oclcs.length; i++) {
@@ -52,23 +54,18 @@ export class WorldcatParser {
 		}
 	}
 
-	parseLibraryResponse(data: string): LibraryResponse {
+	parseLibraryResponse(data: string) :LibraryResponse {
 		const libraries: Library[] = []
 
 		//load response data into a cheerio object
-		const $ = cheerio.load(data, {
-				normalizeWhitespace: true, 
-				xmlMode: true, 
-				encoding: 'UTF-8', 
-				xml: true
-		})
+		const $ :CheerioSelector = cheerio.load(data, this.options)
 
 		//parse library xml response
 		//Each library should be contained in a table row with an id. 
 		//This table row is expected to have all available information we need.
 		//Many libraries do not have a catalog url, or even a website linked, so they are optional
 		const libs = $('tr[id]')
-		const total:number = $('.libsdisplay').find('b').last().text()
+		const total:string = $('.libsdisplay').find('b').last().text()
 
 		//.each(index, element) is part of the Cheerio API
 		libs.each( (i, lib) => {
@@ -88,10 +85,10 @@ export class WorldcatParser {
 			}
 
 			//contact info is split into many lines with line breaks and weird spacing.
-			const contact:string[] = cheerio.load(lib)('p')[1].children.map( line => {
+			const contact:string = cheerio.load(lib)('p').get(1).children.map( line => {
 				return line.data ? line.data.trim() : ""
 			}).join(" ").split("&nbsp;").join()
-			const phone:string = contact.match(/\(\d{3}\).*\d{3}\-\d{4}/)
+			const phone:string = contact.match(/\(\d{3}\).*\d{3}\-\d{4}/)[0]
 			const address:string = contact.replace(phone, "")
 
 			//check if a url or catalog url exists before adding it to response
@@ -121,19 +118,16 @@ export class WorldcatParser {
 		}
 	}
 
-	parseLibrarySearchResponse(data: string): LibrarySearchResponse {
+	parseLibrarySearchResponse(data: string) :LibraryResponse {
 		const libraries :Library[] = []
-		const options :CheerioOptionsInterface = {
-			normalizeWhitespace: true, 
-			xmlMode: true
-		}
+		
 
 		//load response data into a cheerio object
-		const $ :CheerioAPI = cheerio.load(data, options)
+		const $ :CheerioStatic = cheerio.load(data, this.options)
 
 		const names 	:string[] 	= this.selectNodeDetails($, 'a', '.name')
 		const addresses :string[] 	= this.selectNodeDetails($, '.geoloc', '.name')
-		const total 	:string 	= this.selectNodeDetails($, 'strong', $('.libsdisplay'))[1]
+		const total 	:string 	= this.selectNodeDetails($, 'strong', '.libsdisplay')[1]
 
 		//check for any weird errors
 		if(names.length !== addresses.length) {
@@ -163,8 +157,8 @@ export class WorldcatParser {
 	 */
 	private selectNodeDetails($ :CheerioSelector, selector :string, parent :string): string[] {
 		const accumulator :string[] = []
-		$(selector, parent).each((index:number, n:CheerioElement) => {
-			accumulator.push(n.children[0].data)
+		$(selector, parent).each((index:number, element:CheerioElement) => {
+			accumulator.push(element.children[0].data)
 		})
 		return accumulator
 	}

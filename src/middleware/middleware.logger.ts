@@ -1,5 +1,5 @@
 import { Logger, Middleware, NestMiddleware, ExpressMiddleware } from '@nestjs/common';
-import * as chalk from 'chalk'
+import chalk from 'chalk'
 
 @Middleware()
 export class LoggerMiddleware implements NestMiddleware {

@@ -1,6 +1,6 @@
 import {Book} from './interface.book'
 
-export const BookResponse = {
-	total: number,
+export interface BookResponse {
+	total: string,
 	data: Book[]
 }

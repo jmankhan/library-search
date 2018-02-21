@@ -4,3 +4,7 @@ export interface LibrarySearchParam {
 	readonly page: number,			//start paging bound
 	isLibSearch: boolean
 }
+
+export function instanceOfLibrarySearchParam(object :any) :object is LibrarySearchParam {
+	return 'book_oclc' in object
+}

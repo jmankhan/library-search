@@ -1,6 +1,6 @@
-import {BookParam} from '../books/interface.bookparam'
-import {LibParam} from '../libraries/interface.libparam'
-import {LibrarySearchParam} from '../libraries/interface.libsearchparam'
+import {BookParam, instanceOfBookParam} from '../books/interface.bookparam'
+import {LibraryParam, instanceOfLibraryParam} from '../libraries/interface.libparam'
+import {LibrarySearchParam, instanceOfLibrarySearchParam} from '../libraries/interface.libsearchparam'
 import {WorldcatParser} from './parser.worldcat'
 
 import {BookResponse} from '../books/interface.bookresponse'
@@ -61,9 +61,9 @@ export class Worldcat {
 	 * @param  {BookParam} bookParams The parameters to search against
 	 * @return {Book[]}               Returns a list of Book
 	 */
-	public async getBook(bookParams: BookParam): BookResponse {
-		//set flag on params
+	public async getBook(bookParams :BookParam) :Promise<BookResponse> {
 		bookParams.isBook = true
+
 		return this.httpCallout(this.booksUrl, bookParams)
 			.then(response => {
 				return this.parser.parseBookResponse(response.data)
@@ -76,11 +76,10 @@ export class Worldcat {
 
 	/**
 	 * Retrieves a list of libraries using the Worldcat Find a Library page 
-	 * @param  {LibParam}  libParams params to search against
+	 * @param  {LibraryParam}  LibraryParams params to search against
 	 * @return {Library[]}           List of libraries found
 	 */
-	public async getLibraryByName(libParams: LibParam): LibraryResponse {
-		//set flag on params
+	public async getLibraryByName(libParams :LibraryParam) :Promise<LibraryResponse> {
 		libParams.isLib = true
 
 		return this.httpCallout(this.libraryUrl, libParams)
@@ -89,49 +88,48 @@ export class Worldcat {
 			})
 			.catch(err => {
 				console.log(err)
+				return null
 			})
 	}
 
-	public async getLibraryByBook(searchParams: LibrarySearchParam): LibraryResponse {
+	public async getLibraryByBook(searchParams: LibrarySearchParam) :Promise<LibraryResponse> {
 		//set param flag
 		searchParams.isLibSearch = true
-
-		//init return array
-		const libraries: Library[] = []
 
 		return this.httpCallout(this.libraryUrl, searchParams)
 			.then(response => {
 				return this.parser.parseLibrarySearchResponse(response.data)
 			})
 			.catch(err => {
+				//should probably throw something here
 				console.log(err)
-				return libraries
+				return null
 			})
 	}
 
 	/**
 	 * Performs the http request to retrieve the worldcat response as an xml page
 	 * @param  {string}             url    Worldcat endpoint to perform a GET request against
-	 * @param  {BookParam|LibParam} params Parameters to be appended to the base url as a query string
+	 * @param  {BookParam|LibraryParam} params Parameters to be appended to the base url as a query string
 	 * @return {Promise}                   Returns an axios response with an expected XML format in response.data
 	 */
-	private httpCallout(url: string, typedParams: BookParam|LibParam|LibrarySearchParam): Promise {
+	private httpCallout(url: string, typedParams: BookParam|LibraryParam|LibrarySearchParam): Promise<any> {
 		//copy params into a sanitized object. set additional parameters based on what type the object is.
 		//Since type checking is not available at runtime, we will use object properties and hope we remember
 		//to set them before calling this...
 		//If the types were classes, we could initialize the appropriate properties to true beforehand
 		let params = {}
-		if(typedParams.isBook) {
+		if(instanceOfBookParam(typedParams)) {
 			Object.assign(params, this.defaultBookParams)
 			params['q'] += typedParams.keyword
 			params['start'] = typedParams.page ? typedParams.page : this.defaultBookParams['start']
 		}
-		else if(typedParams.isLib) {
+		else if(instanceOfLibraryParam(typedParams)) {
 			Object.assign(params, this.defaultLibraryParams)
 			params['search'] = typedParams.name
 			params['start'] = typedParams.page ? typedParams.page : this.defaultLibraryParams['start']
 		}
-		else if(typedParams.isLibSearch) {
+		else if(instanceOfLibrarySearchParam(typedParams)) {
 			Object.assign(params, this.defaultLibrarySearchParams)
 			params['wcoclcnum'] = typedParams.book_oclc ? typedParams.book_oclc : this.defaultLibrarySearchParams['book_oclc']
 			params['loc'] = typedParams.zip ? typedParams.zip : this.defaultLibrarySearchParams['loc']

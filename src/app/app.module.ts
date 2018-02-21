@@ -1,4 +1,4 @@
-import {Module, NestModule, RequestMethod} from '@nestjs/common'
+import {Module, NestModule, MiddlewaresConsumer, RequestMethod} from '@nestjs/common'
 import {MongooseModule} from '@nestjs/mongoose'
 import {BookModule} from '../books/module.book'
 import {LibraryModule} from '../libraries/module.library'
@@ -14,7 +14,7 @@ import {LoggerMiddleware} from '../middleware/middleware.logger'
 				MongooseModule.forRoot('mongodb://jmankhan:jalalkhan1@ds115768.mlab.com:15768/kerana-dev')]
 })
 export class ApplicationModule { 
-	configure(consumer: MiddlewareConsumer) {
+	configure(consumer: MiddlewaresConsumer) {
 		consumer.apply(LoggerMiddleware)
 			.forRoutes({path: '*', method: RequestMethod.ALL})
 	}

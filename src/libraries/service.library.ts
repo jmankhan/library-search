@@ -1,4 +1,6 @@
 import {Component} from '@nestjs/common'
+import {LibraryParam} from './interface.libparam'
+import {LibrarySearchParam} from './interface.libsearchparam'
 import {LibraryResponse} from './interface.libresponse'
 import {Worldcat} from '../worldcat'
 
@@ -7,7 +9,7 @@ import {Worldcat} from '../worldcat'
  */
 @Component()
 export class LibraryService {
-	private worldcat: Worldcat
+	private worldcat :Worldcat
 
 	constructor() {
 		this.worldcat = new Worldcat()
@@ -18,11 +20,11 @@ export class LibraryService {
 	 * @param  {string}    params Query string parameters from controller
 	 * @return {Library[]}        List of Library found by provider
 	 */
-	async findByName(params: string): LibraryResponse {
+	async findByName(params :LibraryParam) :Promise<LibraryResponse> {
 		return await this.worldcat.getLibraryByName(params)
 	}
 
-	async findByBook(params: string): LibraryResponse {
+	async findByBook(params: LibrarySearchParam) :Promise<LibraryResponse> {
 		return await this.worldcat.getLibraryByBook(params)
 	}
 }

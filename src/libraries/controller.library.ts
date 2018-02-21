@@ -1,9 +1,9 @@
-import {Controller, Get, Body, Query} from '@nestjs/common'
+import {Controller, Get, Body, Query, HttpException, HttpStatus} from '@nestjs/common'
 import {LibraryService} from './service.library'
 import {Library} from './interface.library'
-import {LibParam} from '../worldcat/interface.libparam'
-import {LibrarySearchParam} from '../worldcat/interface.libsearchparam'
-import {LibrarySearchResponse} from './interface.libresponse'
+import {LibraryParam, instanceOfLibraryParam} from './interface.libparam'
+import {LibrarySearchParam, instanceOfLibrarySearchParam} from './interface.libsearchparam'
+import {LibraryResponse} from './interface.libresponse'
 
 /**
  * Library controller that handles the endpoint
@@ -11,7 +11,7 @@ import {LibrarySearchResponse} from './interface.libresponse'
  */
 @Controller('library')
 export class LibraryController {
-	constructor(private readonly service: LibraryService) {}
+	constructor(private readonly service :LibraryService) {}
 	
 	/**
 	 * Uses the Library service to find a list of Library.
@@ -19,12 +19,12 @@ export class LibraryController {
 	 * @return {Promise<Library[]>}        Returns a Promise from the service that may be rejected
 	 */
 	@Get()
-	async find(@Query() params: LibParam|LibrarySearchParam): Promise<LibraryResponse> {
-		if(params.name)
+	async find(@Query() params :LibraryParam|LibrarySearchParam) :Promise<LibraryResponse> {
+		if(instanceOfLibraryParam(params))
 			return await this.service.findByName(params)
-		else if(params.book_oclc)
+		else if(instanceOfLibrarySearchParam(params))
 			return await this.service.findByBook(params)
 		else
-			return []
+			throw new HttpException('Incorrect library query parameters', HttpStatus.AMBIGUOUS)
 	}
 }
