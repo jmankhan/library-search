@@ -13,7 +13,7 @@ export class AuthService {
 	constructor(@InjectModel(UserSchema) private readonly userModel: Model<IUser>) {}
 
 	async createToken(user: IUser) {
-		const secret = 'q+m7kcMENkbhxQin9JCdvDOILQI4a7uOr0XcGpBfSnQ='
+		const secret = process.env.JWT_SECRET
 		const token = jwt.sign(user, secret)
 		return {
 			token

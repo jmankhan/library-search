@@ -9,7 +9,7 @@ export class JwtStrategy extends Strategy {
 		super({
 			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 			passReqToCallback: true,
-			secretOrKey: 'q+m7kcMENkbhxQin9JCdvDOILQI4a7uOr0XcGpBfSnQ='
+			secretOrKey: process.env.JWT_SECRET
 		}, 
 		async (req, payload, next) => {
 			await this.verify(req, payload, next)

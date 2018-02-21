@@ -1,3 +1,4 @@
+require('dotenv').config()
 import {NestFactory} from '@nestjs/core'
 import {ApplicationModule} from './app/app.module'
 import * as bodyParser from 'body-parser'

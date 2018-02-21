@@ -11,7 +11,7 @@ import {LoggerMiddleware} from '../middleware/middleware.logger'
 				LibraryModule, 
 				GoodreadsModule, 
 				AuthModule, 
-				MongooseModule.forRoot('mongodb://jmankhan:jalalkhan1@ds115768.mlab.com:15768/kerana-dev')]
+				MongooseModule.forRoot(process.env.DB_URL)]
 })
 export class ApplicationModule { 
 	configure(consumer: MiddlewaresConsumer) {

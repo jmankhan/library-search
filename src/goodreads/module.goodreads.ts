@@ -1,9 +1,11 @@
 import * as passport from 'passport'
 import {Module, MiddlewaresConsumer, RequestMethod} from '@nestjs/common'
 import {GoodreadsController} from './controller.goodreads'
+import {GoodreadsService} from './service.goodreads'
 
 @Module({
-	controllers: [GoodreadsController]
+	controllers: [GoodreadsController],
+	components: [GoodreadsService]
 })
 
 export class GoodreadsModule {
