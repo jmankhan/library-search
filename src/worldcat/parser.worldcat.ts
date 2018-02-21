@@ -64,51 +64,55 @@ export class WorldcatParser {
 		//Each library should be contained in a table row with an id. 
 		//This table row is expected to have all available information we need.
 		//Many libraries do not have a catalog url, or even a website linked, so they are optional
-		const libs = $('tr[id]')
-		const total:string = $('.libsdisplay').find('b').last().text()
+		const libs :Cheerio = $('tr[id]')
+		const total :string	= $('.libsdisplay').find('b').last().text()
 
 		//.each(index, element) is part of the Cheerio API
-		libs.each( (i, lib) => {
-			const name:string = lib.attribs['id']
+		libs.each( (i :number, lib :CheerioElement) => {
+			const name :string = lib.attribs['id']
 			
 			//google maps location url. we can parse the lat/lng from it
-			const locationUrl:string = cheerio.load(lib)('.lib-map-sm')[0].attribs['href']
-			let lat = null
-			let lng = null
+			const locationUrl :string = cheerio.load(lib)('.lib-map-sm')[0].attribs['href']
+			let lat :void|number = null
+			let lng :void|number = null
 			try {
+				//none of the regular expressions I tried worked q_q
 				const latlng = locationUrl.split('@')[1].split('&')[0].split(',')
-				lat = latlng[0]
-				lng = latlng[1]
+				lat = +latlng[0]
+				lng = +latlng[1]
 			}
 			catch(err) {
 				console.log('no latlng in url')
 			}
 
 			//contact info is split into many lines with line breaks and weird spacing.
-			const contact:string = cheerio.load(lib)('p').get(1).children.map( line => {
+			const contact :string = cheerio.load(lib)('p').get(1).children.map( line => {
 				return line.data ? line.data.trim() : ""
 			}).join(" ").split("&nbsp;").join()
-			const phone:string = contact.match(/\(\d{3}\).*\d{3}\-\d{4}/)[0]
-			const address:string = contact.replace(phone, "")
+
+			const phone :string 	= contact.match(/\(\d{3}\).*\d{3}\-\d{4}/)[0]
+			const address :string 	= contact.replace(phone, "")
 
 			//check if a url or catalog url exists before adding it to response
-			const urls = cheerio.load(lib)('.lib-website')
-			const catalogUrls = cheerio.load(lib)('.lib-catalog')
+			const urls :Cheerio 		= cheerio.load(lib)('.lib-website')
+			const catalogUrls :Cheerio	= cheerio.load(lib)('.lib-catalog')
 
-			const url:string = urls.length > 0 ? urls[0].attribs['href'] : null
-			const catalogUrl:string = catalogUrls.length > 0 ? catalogUrls[0].attribs['href'] : null
+			const url :void|string 			= urls.length > 0 ? urls[0].attribs['href'] : null
+			const catalogUrl :void|string 	= catalogUrls.length > 0 ? catalogUrls[0].attribs['href'] : null
 
 			const response = {
 				name: name,
 				address: address,
-				phone: phone,
-				lat: lat,
-				lng: lng
+				phone: phone
 			}
 			if(url)
 				response['url'] = url
 			if(catalogUrl)
 				response['catalogUrl'] = catalogUrl
+			if(lat && lng) {
+				response['lat'] = lat
+				response['lng'] = lng
+			}
 
 			libraries.push(response)
 		})
