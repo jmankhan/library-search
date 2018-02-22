@@ -1,6 +1,6 @@
 import {Library} from './interface.library'
 
 export interface LibraryResponse {
-	total: string,
+	total: number,
 	data: Library[]
 }

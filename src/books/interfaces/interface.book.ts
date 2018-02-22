@@ -3,8 +3,9 @@
  */
 export interface Book {
 	readonly title: string
-	readonly author: string
-	readonly oclc: string
+	readonly author?: string
+	readonly oclc?: string
+	readonly goodreads_id?: string
 	readonly isbn?: string
 	readonly publisher?: string
 	readonly publishDate?: Date

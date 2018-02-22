@@ -1,6 +1,8 @@
 import {Controller, Get, Query} from '@nestjs/common'
 import {GoodreadsService} from './service.goodreads'
-import {GoodreadsShelfParams, GoodreadsShelfResponse} from './interfaces'
+import {GoodreadsShelfParams, GoodreadsShelfResponse, 
+		GoodreadsUserParams, GoodreadsUserResponse,
+		GoodreadsBookShelfParams, GoodreadsBookShelfResponse} from './interfaces'
 
 @Controller('goodreads')
 export class GoodreadsController {
@@ -8,6 +10,16 @@ export class GoodreadsController {
 
 	@Get('/shelves')
 	public async getShelves(@Query() params :GoodreadsShelfParams) :Promise<GoodreadsShelfResponse> {
-		return this.service.getShelves(params)
+		return await this.service.getShelves(params)
+	}
+
+	@Get('/user')
+	public async getUser(@Query() params :GoodreadsUserParams) :Promise<GoodreadsUserResponse> {
+		return await this.service.getUser(params)
+	}
+
+	@Get('/books')
+	public async getBooksOnShelf(@Query() params :GoodreadsBookShelfParams) :Promise<GoodreadsBookShelfResponse> {
+		return await this.service.getBooksOnShelf(params)
 	}
 }

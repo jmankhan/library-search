@@ -4,6 +4,7 @@
 export interface GoodreadsBookShelfParams {
 	id :string 			//user_id
 	key :string 		//developer key
+	v :number 			//version number
 	shelf? :string 		//name of the shelf that is being 
 	sort? :string 		//sort by column
 	search? :string 	//optional filter

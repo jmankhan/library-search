@@ -7,7 +7,7 @@ const axios = require('axios')
 export function httpGet(url :string, params :any) :Promise<any> {
 	return axios.get(url, {
 		paramsSerializer: function(params) {
-			return '?' + Object.keys(params).map(key => {
+			return Object.keys(params).map(key => {
 				return key + '=' + (params[key] ? params[key] : '')
 			}).join('&').replace(' ', '')
 		},

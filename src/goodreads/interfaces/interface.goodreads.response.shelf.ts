@@ -1,6 +1,6 @@
 import {Shelf} from './interface.goodreads.shelf'
 
 export interface GoodreadsShelfResponse {
-	total :string
+	total :number
 	data :Shelf[]
 }

@@ -46,7 +46,7 @@ export class WorldcatParser {
 			}
 		})
 		return {
-			total: total,
+			total: +total,
 			data: books
 		}
 	}
@@ -115,7 +115,7 @@ export class WorldcatParser {
 			libraries.push(response)
 		})
 		return {
-			total: total,
+			total: +total,
 			data: libraries
 		}
 	}
@@ -144,7 +144,7 @@ export class WorldcatParser {
 			})
 		}
 		return {
-			total: total,
+			total: +total,
 			data: libraries
 		}
 	}

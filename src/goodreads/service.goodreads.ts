@@ -1,6 +1,8 @@
 import {Component} from '@nestjs/common'
-import {GoodreadsShelfParams, GoodreadsShelfResponse} from './interfaces'
 import {GoodreadsAPI} from './api'
+import {GoodreadsShelfParams, GoodreadsShelfResponse, 
+		GoodreadsUserParams, GoodreadsUserResponse,
+		GoodreadsBookShelfParams, GoodreadsBookShelfResponse} from './interfaces'
 
 @Component()
 export class GoodreadsService {
@@ -11,6 +13,14 @@ export class GoodreadsService {
 	}
 
 	async getShelves(params :GoodreadsShelfParams) :Promise<GoodreadsShelfResponse> {
-		return this.api.getShelves(params)
+		return await this.api.getShelves(params)
 	} 
+
+	async getUser(params :GoodreadsUserParams) :Promise<GoodreadsUserResponse> {
+		return await this.api.getUser(params)
+	}
+
+	async getBooksOnShelf(params :GoodreadsBookShelfParams) :Promise<GoodreadsBookShelfResponse> {
+		return await this.api.getBooksOnShelf(params)
+	}
 }

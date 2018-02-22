@@ -1,4 +1,6 @@
-import {GoodreadsShelfResponse, Shelf} from '../interfaces'
+import {GoodreadsShelfResponse, Shelf, 
+		GoodreadsUser, GoodreadsUserResponse} from '../interfaces'
+import {Book} from '../../books/interfaces'
 
 const cheerio: CheerioAPI = require('cheerio')
 
@@ -11,11 +13,11 @@ export class GoodreadsParser {
 	parseShelves(data :string) :GoodreadsShelfResponse {
 		const shelves :Shelf[] = []
 
-		const $ = cheerio.load(data, this.options)
-		
-		const userShelves :CheerioElement = $('GoodreadsResponse').find('shelves').find('user_shelf')
+		const $ :CheerioStatic 		= cheerio.load(data, this.options)
+		const userShelves :Cheerio 	= $('GoodreadsResponse').find('shelves').find('user_shelf')
+
 		//required
-		const ids :string[] 		 = userShelves.find('id')
+		const ids :Cheerio	 		= userShelves.find('id')
 
 		//may not exist, perform some null checks
 		const names :string[] 		 = this.selectIfExists(userShelves.find('name'))
@@ -37,8 +39,42 @@ export class GoodreadsParser {
 		}
 	}
 
-	parseUser(data :string) {}
-	parseBooksOnShelf(data :string) {}
+	parseUser(data :string) :GoodreadsUserResponse {
+		const $ :CheerioStatic = cheerio.load(data, this.options)
+
+		const user :Cheerio = $('GoodreadsResponse').find('user')
+		const id :string = this.selectIfExists(user.find('id'))[0]
+		const name :string = this.selectIfExists(user.find('name'))[0]
+
+		return {
+			id: id,
+			name: name
+		}
+	}
+
+	parseBooksOnShelf(data :string) {
+		const $ :CheerioStatic = cheerio.load(data, this.options)
+		const books :Book[] = []
+
+		const total = $('reviews')[0].attribs['total']
+		const goodreadsBooks = $('book')
+		const ids :string[] = this.selectIfExists($('book > id'))
+		const isbns :string[] = this.selectIfExists($('book > isbn13'))
+		const titles :string[] = this.selectIfExists($('book > title_without_series'))
+
+		goodreadsBooks.each( (i :number, e:CheerioElement) => {
+			books.push({
+				title: titles[i],
+				goodreads_id: ids[i],
+				isbn: isbns[i],
+			})
+		})
+		//dummy
+		return {
+			total: +total,
+			data: books
+		}
+	}
 
 
 	/**
@@ -57,10 +93,17 @@ export class GoodreadsParser {
 		return accumulator
 	}
 
-	private selectIfExists(nodes :Cheerio[]) :string[] {
+	/**
+	 * Selects the data of a node if it exists, null otherwise.
+	 * Note that the Cheerio object has a length property, but is not an array
+	 * 
+	 * @param  {Cheerio}  nodes Cheerio object representing a virtual DOM node
+	 * @return {string[]}       The data contained within the node
+	 */
+	private selectIfExists(nodes :Cheerio) :string[] {
 		const data :string[] = []
 		for(var i=0; i<nodes.length; i++) {
-			data.push(nodes[i].children.length ? nodes[i].children[0].data : null)
+			data.push(nodes.get(i).children.length ? nodes[i].children[0].data : null)
 		}
 
 		return data

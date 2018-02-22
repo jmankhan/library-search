@@ -1,6 +1,6 @@
 import {Book} from './interface.book'
 
 export interface BookResponse {
-	total: string,
+	total: number,
 	data: Book[]
 }
