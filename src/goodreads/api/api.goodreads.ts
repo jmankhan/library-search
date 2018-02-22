@@ -1,3 +1,4 @@
+import {BadRequestException, NotFoundException} from '@nestjs/common'
 import {GoodreadsUserParams, instanceOfGoodreadsUser,
 		GoodreadsShelfParams, instanceOfGoodreadsShelf, 
 		GoodreadsBookShelfParams, instanceOfGoodreadsBookShelf,
@@ -41,9 +42,8 @@ export class GoodreadsAPI {
 			return this.parser.parseShelves(res.data)
 		})
 		.catch(err => {
-			//throw exception here
 			console.log(err)
-			return null
+			throw new NotFoundException('Error retriveing shelves')
 		})
 	}
 
@@ -55,7 +55,7 @@ export class GoodreadsAPI {
 		})
 		.catch(err => {
 			console.log(err)
-			return null
+			throw new NotFoundException('Error retrieving user')
 		})
 	}
 
@@ -67,7 +67,7 @@ export class GoodreadsAPI {
 		})
 		.catch(err => {
 			console.log(err)
-			return null
+			throw new NotFoundException('Error retrieving Shelves for this user')
 		})
 	}
 
@@ -97,7 +97,7 @@ export class GoodreadsAPI {
 				params['order'] = p.order
 		}
 		else {
-			//throw some error here
+			throw new BadRequestException('Invalid parameters for goodreads')
 		}
 
 		return httpGet(url, params)
