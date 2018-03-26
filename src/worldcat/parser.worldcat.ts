@@ -1,5 +1,6 @@
-import {Book, BookResponse} from '../books/interfaces'
-import {Library, LibraryResponse} from '../libraries/interfaces'
+import {GenericResponse} from '../interfaces'
+import {Book} from '../books/interfaces'
+import {Library} from '../libraries/interfaces'
 
 const cheerio: CheerioAPI = require('cheerio')
 
@@ -17,7 +18,7 @@ export class WorldcatParser {
 			xmlMode: true
 		}
 
-	parseBookResponse(data: string) :BookResponse {
+	parseBookResponse(data: string) :GenericResponse<Book> {
 		const books: Book[] = []
 		const selectNodeDetails = this.selectNodeDetails
 		//load response as a cheerio object
@@ -26,7 +27,7 @@ export class WorldcatParser {
 		//parse book xml response
 		const content :string				= $('response').find('element').find('content').last()[0].children[0].data
 		const booksMarkup :CheerioStatic	= cheerio.load(content)
-		const total :string 				= booksMarkup('.resultsinfo').first().find('td').find('strong')[1].children[0].data
+		const totalMarkup :string 			= booksMarkup('.resultsinfo').first().find('td').find('strong')[1].children[0].data
 
 		//collect data by css selector. the joys of web scraping. 
 		const oclcs :string[]		= selectNodeDetails($, '.oclc_number', content)
@@ -46,12 +47,12 @@ export class WorldcatParser {
 			}
 		})
 		return {
-			total: +total,
+			total: this.getTotal(totalMarkup),
 			data: books
 		}
 	}
 
-	parseLibraryResponse(data: string) :LibraryResponse {
+	parseLibraryResponse(data: string) :GenericResponse<Library> {
 		const libraries: Library[] = []
 
 		//load response data into a cheerio object
@@ -61,8 +62,8 @@ export class WorldcatParser {
 		//Each library should be contained in a table row with an id. 
 		//This table row is expected to have all available information we need.
 		//Many libraries do not have a catalog url, or even a website linked, so they are optional
-		const libs :Cheerio = $('tr[id]')
-		const total :string	= $('.libsdisplay').find('b').last().text()
+		const libs :Cheerio 		= $('tr[id]')
+		const totalMarkup :string	= $('.libsdisplay').find('b').last().text()
 
 		//.each(index, element) is part of the Cheerio API
 		libs.each( (i :number, lib :CheerioElement) => {
@@ -115,21 +116,21 @@ export class WorldcatParser {
 			libraries.push(response)
 		})
 		return {
-			total: +total,
+			total: this.getTotal(totalMarkup),
 			data: libraries
 		}
 	}
 
-	parseLibrarySearchResponse(data: string) :LibraryResponse {
+	parseLibrarySearchResponse(data: string) :GenericResponse<Library> {
 		const libraries :Library[] = []
 		
 
 		//load response data into a cheerio object
 		const $ :CheerioStatic = cheerio.load(data, this.options)
 
-		const names 	:string[] 	= this.selectNodeDetails($, 'a', '.name')
-		const addresses :string[] 	= this.selectNodeDetails($, '.geoloc', '.name')
-		const total 	:string 	= this.selectNodeDetails($, 'strong', '.libsdisplay')[1]
+		const names 		:string[] 	= this.selectNodeDetails($, 'a', '.name')
+		const addresses 	:string[] 	= this.selectNodeDetails($, '.geoloc', '.name')
+		const totalMarkup 	:string 	= this.selectNodeDetails($, 'strong', '.libsdisplay')[1]
 
 		//check for any weird errors
 		if(names.length !== addresses.length) {
@@ -144,7 +145,7 @@ export class WorldcatParser {
 			})
 		}
 		return {
-			total: +total,
+			total: this.getTotal(totalMarkup),
 			data: libraries
 		}
 	}
@@ -163,5 +164,17 @@ export class WorldcatParser {
 			accumulator.push(element.children[0].data)
 		})
 		return accumulator
+	}
+
+	/**
+	 * Converts a string markup to a numeric type
+	 * e.g. "240,000" => 240000 
+	 * @param  {string} markup The markup string
+	 * @return {number}        The numeric representation of the markup. Defaults to 0
+	 */
+	private getTotal(markup :string) :number {
+		//removes non-digit characters from string and natively converts the result into a num
+		const clean :string = markup.replace(/[^0-9]/g, '')
+		return parseInt(clean, 10) || 0
 	}
 }

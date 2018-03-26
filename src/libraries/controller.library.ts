@@ -1,11 +1,10 @@
-import {Controller, Get, Body, Query, BadRequestException} from '@nestjs/common'
+import {Controller, Get, Body, Query, UsePipes, BadRequestException} from '@nestjs/common'
+import {GenericResponse} from '../interfaces'
+import {GenericParamsPipe} from '../pipes'
 import {LibraryService} from './service.library'
 import {Library, 
 		LibraryParam, 
-		instanceOfLibraryParam, 
-		LibrarySearchParam, 
-		instanceOfLibrarySearchParam,
-		LibraryResponse} from './interfaces'
+		LibrarySearchParam} from './interfaces'
 
 /**
  * Library controller that handles the endpoint
@@ -21,12 +20,14 @@ export class LibraryController {
 	 * @return {Promise<Library[]>}        Returns a Promise from the service that may be rejected
 	 */
 	@Get()
-	async find(@Query() params :LibraryParam|LibrarySearchParam) :Promise<LibraryResponse> {
-		if(instanceOfLibraryParam(params))
-			return await this.service.findByName(params)
-		else if(instanceOfLibrarySearchParam(params))
-			return await this.service.findByBook(params)
-		else
-			throw new BadRequestException('Malformed query parameters')
+	@UsePipes(new GenericParamsPipe())
+	async find(@Query() query :LibraryParam) :Promise<GenericResponse<Library>> {
+		return await this.service.findByName(query)
+	}
+
+	@Get()
+	@UsePipes(new GenericParamsPipe())
+	async search(@Query(new GenericParamsPipe()) query :LibrarySearchParam) :Promise<GenericResponse<Library>> {
+		return await this.service.findByBook(query)
 	}
 }

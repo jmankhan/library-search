@@ -18,10 +18,8 @@ export class BookService {
 	 * @param  {string} params url query string 
 	 * @return {Book[]}        List of Books worldcat found
 	 */
-	async findByKeyword(params: BookParam): Promise<BookResponse> {
-		if(params.keyword == null) {
-			throw new BadRequestException('Invalid query parameters')
-		}
+	async findByKeyword(query :any): Promise<BookResponse> {
+		const params = new BookParam(query.keyword, query.page)
 		return await this.worldcat.getBook(params)
 	}
 }

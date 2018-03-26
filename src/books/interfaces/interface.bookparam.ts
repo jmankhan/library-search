@@ -1,9 +1,7 @@
-export interface BookParam {
-	readonly keyword: string, 	//keyword to search. title, isbn, oclc work best
-	page?: number, 				//start of paging bounds 
-	isBook?: boolean
-}
+import {GenericParams} from '../../interfaces'
 
-export function instanceOfBookParam(object :any) :object is BookParam {
-	return 'isBook' in object
+export class BookParam extends GenericParams {
+	constructor(readonly keyword :string, page? :number) {
+		super(page)
+	}
 }

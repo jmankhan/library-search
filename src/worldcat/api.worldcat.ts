@@ -1,10 +1,7 @@
-import {BookParam, instanceOfBookParam, BookResponse} from '../books/interfaces'
+import {GenericParams, GenericResponse} from '../interfaces'
+import {Book, BookParam} from '../books/interfaces'
+import {Library, LibraryParam, LibrarySearchParam} from '../libraries/interfaces'
 import {WorldcatParser} from './parser.worldcat'
-import {LibraryParam, 
-		instanceOfLibraryParam, 
-		LibraryResponse,
-		LibrarySearchParam, 
-		instanceOfLibrarySearchParam} from '../libraries/interfaces'
 import {httpGet} from '../http'
 
 /**
@@ -61,9 +58,7 @@ export class WorldcatAPI {
 	 * @param  {BookParam} bookParams The parameters to search against
 	 * @return {Book[]}               Returns a list of Book
 	 */
-	public async getBook(bookParams :BookParam) :Promise<BookResponse> {
-		bookParams.isBook = true
-
+	public async getBook(bookParams :BookParam) :Promise<GenericResponse<Book>> {
 		return this.httpCallout(this.booksUrl, bookParams)
 			.then(response => {
 				return this.parser.parseBookResponse(response.data)
@@ -79,9 +74,7 @@ export class WorldcatAPI {
 	 * @param  {LibraryParam}  LibraryParams params to search against
 	 * @return {Library[]}           List of libraries found
 	 */
-	public async getLibraryByName(libParams :LibraryParam) :Promise<LibraryResponse> {
-		libParams.isLib = true
-
+	public async getLibraryByName(libParams :LibraryParam) :Promise<GenericResponse<Library>> {
 		return this.httpCallout(this.libraryUrl, libParams)
 			.then(response => {
 				return this.parser.parseLibraryResponse(response.data)
@@ -92,10 +85,7 @@ export class WorldcatAPI {
 			})
 	}
 
-	public async getLibraryByBook(searchParams: LibrarySearchParam) :Promise<LibraryResponse> {
-		//set param flag
-		searchParams.isLibSearch = true
-
+	public async getLibraryByBook(searchParams: LibrarySearchParam) :Promise<GenericResponse<Library>> {
 		return this.httpCallout(this.libraryUrl, searchParams)
 			.then(response => {
 				return this.parser.parseLibrarySearchResponse(response.data)
@@ -113,27 +103,27 @@ export class WorldcatAPI {
 	 * @param  {BookParam|LibraryParam} params Parameters to be appended to the base url as a query string
 	 * @return {Promise}                   Returns an axios response with an expected XML format in response.data
 	 */
-	private httpCallout(url: string, typedParams: BookParam|LibraryParam|LibrarySearchParam): Promise<any> {
+	private httpCallout(url: string, typedParams: GenericParams): Promise<any> {
 		//copy params into a sanitized object. set additional parameters based on what type the object is.
 		//Since type checking is not available at runtime, we will use object properties and hope we remember
 		//to set them before calling this...
 		//If the types were classes, we could initialize the appropriate properties to true beforehand
 		let params = {}
-		if(instanceOfBookParam(typedParams)) {
+		if(typedParams instanceof BookParam) {
 			Object.assign(params, this.defaultBookParams)
 			params['q'] += typedParams.keyword
-			params['start'] = typedParams.page ? typedParams.page : this.defaultBookParams['start']
+			params['start'] = typedParams.page
 		}
-		else if(instanceOfLibraryParam(typedParams)) {
+		else if(typedParams instanceof LibraryParam) {
 			Object.assign(params, this.defaultLibraryParams)
 			params['search'] = typedParams.name
-			params['start'] = typedParams.page ? typedParams.page : this.defaultLibraryParams['start']
+			params['start'] = typedParams.page
 		}
-		else if(instanceOfLibrarySearchParam(typedParams)) {
+		else if(typedParams instanceof LibrarySearchParam) {
 			Object.assign(params, this.defaultLibrarySearchParams)
-			params['wcoclcnum'] = typedParams.book_oclc ? typedParams.book_oclc : this.defaultLibrarySearchParams['book_oclc']
-			params['loc'] = typedParams.zip ? typedParams.zip : this.defaultLibrarySearchParams['loc']
-			params['start_holding'] = typedParams.page ? typedParams.page : this.defaultLibrarySearchParams['start_holding']
+			params['wcoclcnum'] = typedParams.book_oclc
+			params['loc'] = typedParams.zip
+			params['start_holding'] = typedParams.page
 		}
 
 		return httpGet(url, params)

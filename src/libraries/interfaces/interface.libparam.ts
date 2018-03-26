@@ -1,12 +1,7 @@
-/**
- * Provider params required to search for a Library
- */
-export interface LibraryParam {
-	name: string, //name of library
-	page: number, //start of paging bound
-	isLib?: boolean
-}
+import {GenericParams} from '../../interfaces'
 
-export function instanceOfLibraryParam(object :any) :object is LibraryParam {
-	return 'name' in object
+export class LibraryParam extends GenericParams {
+	constructor(readonly name :string, page? :number) {
+		super(page)
+	}
 }

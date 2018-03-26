@@ -1,6 +1,8 @@
-import {Controller, Get, Post, Body, Query} from '@nestjs/common'
+import {Controller, Get, Post, Request, Query, UsePipes} from '@nestjs/common'
 import {BookResponse, BookParam} from './interfaces'
 import {BookService} from './service.book'
+import {GenericParamsPipe} from '../pipes'
+import {GenericParams} from '../interfaces'
 
 /**
  * Book Controller that handles an endpoint
@@ -14,7 +16,14 @@ export class BookController {
 	 *  @param {BookParam} params enforced query string parameters 
 	 */
 	@Get()
-	async findByKeyword(@Query() params: BookParam): Promise<BookResponse> {
-		return await this.service.findByKeyword(params)
+	@UsePipes(new GenericParamsPipe())
+	async findByKeyword(@Query() query) :Promise<BookResponse> {
+		return await this.service.findByKeyword(query)
+	}
+
+	@Get('/test')
+	async test(@Request() req) {
+		console.log(req.query)
+		return {'hue': 'hue'}
 	}
 }

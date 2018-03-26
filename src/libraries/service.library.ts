@@ -18,11 +18,13 @@ export class LibraryService {
 	 * @param  {string}    params Query string parameters from controller
 	 * @return {Library[]}        List of Library found by provider
 	 */
-	async findByName(params :LibraryParam) :Promise<LibraryResponse> {
+	async findByName(query :LibraryParam) :Promise<LibraryResponse> {
+		const params = new LibraryParam(query.name, query.page)
 		return await this.worldcat.getLibraryByName(params)
 	}
 
-	async findByBook(params: LibrarySearchParam) :Promise<LibraryResponse> {
+	async findByBook(query: LibrarySearchParam) :Promise<LibraryResponse> {
+		const params = new LibrarySearchParam(query.book_oclc, query.zip, query.page)
 		return await this.worldcat.getLibraryByBook(params)
 	}
 }
